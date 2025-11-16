@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pomodoro Timer</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #191919;
+            margin: 0;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        body.light {
+            background-color: #FFFFFF;
+            color: #37352F;
+        }
+
+        .container {
+            padding: 10px;
+            border-radius: 10px;
+            width: 95%;
+            max-width: 600px;
+            text-align: center;
+            margin: 10px;
+            background-color: #191919;
+            transition: background-color 0.3s;
+        }
+
+        .light .container {
+            background-color: #FFFFFF;
+        }
+
+        .timer-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .timer-tab {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            color: white;
+        }
+
+        .light .timer-tab {
+            color: #555555;
+        }
+
+        .timer-tab.active {
+            border: 2px solid var(--theme-color);
+            color: white;
+        }
+
+        .light .timer-tab.active {
+            border: 2px solid #555555;
+            color: #555555;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0 0 0;
+        }
+
+        .timer {
+            font-size: clamp(48px, 15vw, 72px);
+            font-weight: bold;
+            color: var(--theme-color);
+        }
+
+        .light .timer {
+            color: #37352F;
+        }
+
+        .timer-btn {
+            background: #191919;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+            position: relative;
+            top: 0;
+        }
+
+        .light .timer-btn {
+            background: #FFFFFF;
+            color: #37352F;
+        }
+
+        .timer-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .timer-btn:active,
+        .timer-btn.pressed {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) inset;
+            top: 2px;
+        }
+
+        .timer-btn.hidden {
+            visibility: hidden;
+        }
+
+        .pomo-marks {
+            font-size: 16px;
+            color: var(--theme-color);
+            margin: 5px 0;
+        }
+
+        .light .pomo-marks {
+            color: #37352F;
+        }
+
+        .total-work-time {
+            font-size: 16px;
+            color: var(--theme-color);
+            margin: 0 0 20px 0;
+        }
+
+        .light .total-work-time {
+            color: #37352F;
+        }
+
+        .progress-bar {
+            width: calc(100% - 80px);
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 auto 20px auto;
+        }
+
+        .light .progress-bar {
+            background: #D3D3D3;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: var(--theme-color);
+            transition: width 1s linear;
+        }
+
+        .light.white-theme .progress {
+            background: #555555 !important;
+        }
+
+        .control-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .buttons button {
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            background: var(--theme-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+            position: relative;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 40px;
+        }
+
+        .buttons button.white-text {
+            color: #37352F;
+        }
+
+        .buttons button:hover {
+            background: var(--theme-hover);
+        }
+
+        .buttons button:active,
+        .buttons button.pressed {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) inset;
+            top: 2px;
+        }
+
+        .buttons button svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .settings-tabs {
+            display: flex;
+            justify-content: center;
+        }
+
+        .settings-tab {
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .settings-tab svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+            transition: transform 0.3s ease;
+        }
+
+        .light .settings-tab svg {
+            fill: #37352F;
+        }
+
+        .settings-tab.active svg {
+            transform: rotate(90deg);
+        }
+
+        .settings-content {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            width: 200px;
+            z-index: 10;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: opacity 0.3s ease-out, max-height 0.3s ease-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .settings-content.active {
+            opacity: 1;
+            max-height: 300px;
+        }
+
+        .light .settings-content {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        .color-option:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-option.selected {
+            border-color: white;
+        }
+
+        .light .color-option.selected {
+            border-color: #37352F;
+        }
+
+        .theme-toggle, .sound-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .volume-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .volume-control label {
+            margin-bottom: 5px;
+        }
+
+        .volume-control svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .light .volume-control svg {
+            fill: #37352F;
+        }
+
+        .volume-control input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: var(--theme-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .volume-control input[type="range"]::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: var(--theme-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .light .volume-control input[type="range"] {
+            background: #D3D3D3;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 25px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            border-radius: 25px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 21px;
+            width: 21px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #34C759;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(25px);
+        }
+
+        .light .toggle-slider {
+            background-color: #A9A9A9;
+        }
+
+        .theme-toggle label, .sound-toggle label {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .reset-default {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background: var(--theme-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reset-default:hover {
+            background: var(--theme-hover);
+        }
+
+        .light .reset-default {
+            color: #37352F;
+        }
+
+        .light .reset-default.non-white {
+            color: #FFFFFF;
+        }
+
+        .reset-default.dark-gray {
+            color: #555555;
+        }
+
+        .version-info {
+            font-size: 10px;
+            color: #A9A9A9;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 98%;
+                padding: 8px;
+            }
+
+            .timer-tabs {
+                margin-bottom: 15px;
+            }
+
+            .timer-tab {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .timer-container {
+                gap: 8px;
+            }
+
+            .timer-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+
+            .progress-bar {
+                width: calc(100% - 60px);
+            }
+
+            .control-section {
+                gap: 8px;
+            }
+
+            .buttons button {
+                width: 45px;
+                height: 35px;
+            }
+
+            .settings-tab {
+                width: 28px;
+                height: 28px;
+            }
+
+            .settings-content {
+                width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="timer-tabs">
+            <div class="timer-tab active" data-type="pomodoro">Pomo</div>
+            <div class="timer-tab" data-type="rest">Relux</div>
+        </div>
+        <div class="timer-container">
+            <button class="timer-btn decrease">◀︎</button>
+            <div class="timer">25:00</div>
+            <button class="timer-btn increase">▶︎</button>
+        </div>
+        <div class="pomo-marks"></div>
+        <div class="total-work-time"></div>
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+        <div class="control-section">
+            <div class="settings-tabs">
+                <div class="settings-tab" data-tab="settings">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58a.65.65 0 0 0 .12-.61l-1.92-3.32a.65.65 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.65.65 0 0 0-.48-.41h-3.84a.65.65 0 0 0-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.65.65 0 0 0-.59.22L2.74 8.87a.65.65 0 0 0 .12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58a.65.65 0 0 0-.12.61l1.92 3.32a.65.65 0 0 0 .59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54a.65.65 0 0 0 .48.41h3.84a.65.65 0 0 0 .47-.41l-.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96a.65.65 0 0 0 .59-.22l1.92-3.32a.65.65 0 0 0-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="buttons">
+                <button id="start">
+                    <svg viewBox="0 0 24 24" class="start-icon">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </button>
+                <button id="reset">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="settings-content" data-tab="settings">
+                <div class="color-options">
+                    <div class="color-option selected" data-color="#FFFFFF" style="background: #FFFFFF;"></div>
+                    <div class="color-option" data-color="#ba4949" style="background: #ba4949;"></div>
+                    <div class="color-option" data-color="#38858a" style="background: #38858a;"></div>
+                    <div class="color-option" data-color="#397097" style="background: #397097;"></div>
+                </div>
+                <div class="theme-toggle">
+                    <label for="theme">
+                        Light Theme
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="theme">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+                <div class="sound-toggle">
+                    <label for="sound">
+                        Sound <!-- "Sound On/Off"から変更 -->
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="sound" checked>
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+                <div class="volume-control">
+                    <label for="volume">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                        </svg>
+                    </label>
+                    <input type="range" id="volume" min="0" max="1" step="0.1" value="0.1">
+                </div>
+                <button class="reset-default">Time Reset</button> <!-- "Reset to Default"から変更 -->
+                <div class="version-info">miniPomo Version 1.0.3 Created by Matsu_K</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const timerDisplay = document.querySelector('.timer');
+        const pomoMarksDisplay = document.querySelector('.pomo-marks');
+        const totalWorkTimeDisplay = document.querySelector('.total-work-time');
+        const startBtn = document.getElementById('start');
+        const resetBtn = document.getElementById('reset');
+        const timerTabs = document.querySelectorAll('.timer-tab');
+        const progress = document.querySelector('.progress');
+        const themeCheckbox = document.getElementById('theme');
+        const soundCheckbox = document.getElementById('sound');
+        const volumeSlider = document.getElementById('volume');
+        const settingsTab = document.querySelector('.settings-tab');
+        const settingsContent = document.querySelector('.settings-content');
+        const colorOptions = document.querySelectorAll('.color-option');
+        const buttons = document.querySelectorAll('.buttons button');
+        const decreaseBtn = document.querySelector('.timer-btn.decrease');
+        const increaseBtn = document.querySelector('.timer-btn.increase');
+        const resetDefaultBtn = document.querySelector('.reset-default');
+
+        let timeLeft = 25 * 60;
+        let totalTime = 25 * 60;
+        let timerId = null;
+        let isRunning = false;
+        let currentType = 'pomodoro';
+        let totalWorkTime = 0;
+        let isSoundEnabled = true;
+        let volume = 0.1;
+
+        const defaultTimes = {
+            pomodoro: 25 * 60,
+            rest: 5 * 60
+        };
+        let times = { ...defaultTimes };
+
+        const startIcon = '<svg viewBox="0 0 24 24" class="start-icon"><path d="M8 5v14l11-7z"/></svg>';
+        const pauseIcon = '<svg viewBox="0 0 24 24" class="pause-icon"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+
+        document.documentElement.style.setProperty('--theme-color', '#FFFFFF');
+        document.documentElement.style.setProperty('--theme-hover', darkenColor('#FFFFFF', 0.1));
+        updateButtonTextColor('#FFFFFF');
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playBeep(frequency, duration, type = 'sine', volumeLevel = volume) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            gainNode.gain.value = volumeLevel;
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playClick() {
+            if (isSoundEnabled) {
+                playBeep(150, 0.08, 'triangle', volume);
+            }
+        }
+
+        function playEndBeep() {
+            if (isSoundEnabled) {
+                playBeep(300, 0.2, 'sine', volume);
+                setTimeout(() => playBeep(250, 0.2, 'sine', volume * 0.8), 250);
+                setTimeout(() => playBeep(200, 0.3, 'sine', volume * 0.6), 500);
+            }
+        }
+
+        function unlockAudioContext() {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+        document.addEventListener('touchstart', unlockAudioContext, { once: true });
+        document.addEventListener('click', unlockAudioContext, { once: true });
+
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        document.addEventListener('gesturechange', e => e.preventDefault());
+        document.addEventListener('gestureend', e => e.preventDefault());
+        document.addEventListener('touchmove', e => {
+            if (e.touches.length > 1) e.preventDefault();
+        }, { passive: false });
+
+        function requestNotificationPermission() {
+            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        console.log("通知が許可されました");
+                    }
+                });
+            }
+        }
+
+        function showNotification(type) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                const title = `${type.charAt(0).toUpperCase() + type.slice(1)} Timer Completed`;
+                const options = {
+                    body: `Your ${type} timer has finished!`,
+                    icon: "https://via.placeholder.com/32",
+                };
+                new Notification(title, options);
+            }
+        }
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            updateProgress();
+            updateTotalWorkTime();
+        }
+
+        function updateProgress() {
+            const percentage = ((totalTime - timeLeft) / totalTime) * 100;
+            progress.style.width = `${percentage}%`;
+        }
+
+        function updateTotalWorkTime() {
+            const totalMinutes = totalWorkTime / 60;
+            const pomoCount = Math.floor(totalMinutes / 25);
+            if (totalMinutes < 25) {
+                pomoMarksDisplay.textContent = '';
+                totalWorkTimeDisplay.textContent = '';
+            } else {
+                pomoMarksDisplay.textContent = '⚫︎'.repeat(pomoCount);
+                if (totalMinutes < 60) {
+                    totalWorkTimeDisplay.textContent = `Total ${Math.floor(totalMinutes)} minutes`;
+                } else {
+                    const totalHours = (totalMinutes / 60).toFixed(1);
+                    totalWorkTimeDisplay.textContent = `Total ${totalHours} hours`;
+                }
+            }
+        }
+
+        function toggleTimerButtons(hidden) {
+            decreaseBtn.classList.toggle('hidden', hidden);
+            increaseBtn.classList.toggle('hidden', hidden);
+        }
+
+        function switchTab(newType) {
+            timerTabs.forEach(tab => tab.classList.remove('active'));
+            const newTab = Array.from(timerTabs).find(tab => tab.dataset.type === newType);
+            if (newTab) {
+                newTab.classList.add('active');
+                currentType = newType;
+                timeLeft = times[currentType];
+                totalTime = times[currentType];
+                updateDisplay();
+            }
+        }
+
+        function startTimer() {
+            playClick();
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.innerHTML = pauseIcon;
+                startBtn.classList.add('pressed');
+                toggleTimerButtons(true);
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    if (currentType === 'pomodoro') {
+                        totalWorkTime++;
+                    }
+                    updateDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        playEndBeep();
+                        showNotification(currentType);
+                        if (currentType === 'pomodoro') {
+                            switchTab('rest');
+                        } else {
+                            switchTab('pomodoro');
+                        }
+                        resetTimer();
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timerId);
+                isRunning = false;
+                startBtn.innerHTML = startIcon;
+                startBtn.classList.remove('pressed');
+                toggleTimerButtons(false);
+            }
+        }
+
+        function resetTimer() {
+            playClick();
+            clearInterval(timerId);
+            timeLeft = times[currentType];
+            totalTime = times[currentType];
+            updateDisplay();
+            isRunning = false;
+            startBtn.innerHTML = startIcon;
+            startBtn.classList.remove('pressed');
+            toggleTimerButtons(false);
+        }
+
+        function adjustTime(minutes) {
+            if (!isRunning) {
+                playClick();
+                const newTime = Math.max(5 * 60, times[currentType] + minutes * 60);
+                times[currentType] = newTime;
+                timeLeft = newTime;
+                totalTime = newTime;
+                updateDisplay();
+            }
+        }
+
+        function resetToDefault() {
+            times = { ...defaultTimes };
+            timeLeft = times[currentType];
+            totalTime = times[currentType];
+            updateDisplay();
+            playClick();
+        }
+
+        timerTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                if (!isRunning) {
+                    timerTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentType = tab.dataset.type;
+                    resetTimer();
+                }
+            });
+        });
+
+        startBtn.addEventListener('click', startTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        decreaseBtn.addEventListener('click', () => {
+            decreaseBtn.classList.add('pressed');
+            adjustTime(-5);
+            setTimeout(() => decreaseBtn.classList.remove('pressed'), 100);
+        });
+        increaseBtn.addEventListener('click', () => {
+            increaseBtn.classList.add('pressed');
+            adjustTime(5);
+            setTimeout(() => increaseBtn.classList.remove('pressed'), 100);
+        });
+
+        settingsTab.addEventListener('click', () => {
+            const isActive = settingsContent.classList.toggle('active');
+            settingsTab.classList.toggle('active', isActive);
+        });
+
+        resetDefaultBtn.addEventListener('click', resetToDefault);
+
+        soundCheckbox.addEventListener('change', () => {
+            isSoundEnabled = soundCheckbox.checked;
+        });
+
+        volumeSlider.addEventListener('input', () => {
+            volume = parseFloat(volumeSlider.value);
+            playClick();
+        });
+
+        function updateButtonTextColor(color) {
+            const isWhite = color.toUpperCase() === '#FFFFFF';
+            const isDarkTheme = !document.body.classList.contains('light');
+            
+            buttons.forEach(btn => {
+                btn.classList.toggle('white-text', isWhite);
+            });
+            
+            resetDefaultBtn.classList.toggle('white-text', isWhite);
+            resetDefaultBtn.classList.toggle('dark-gray', isWhite && isDarkTheme);
+            resetDefaultBtn.classList.toggle('non-white', !isWhite && !isDarkTheme);
+
+            document.body.classList.toggle('white-theme', isWhite && !isDarkTheme);
+        }
+
+        function updateDefaultColor() {
+            const isLight = document.body.classList.contains('light');
+            const currentColor = Array.from(colorOptions).find(opt => opt.classList.contains('selected'))?.dataset.color || '#FFFFFF';
+            const defaultColor = isLight ? currentColor : '#FFFFFF';
+            
+            document.documentElement.style.setProperty('--theme-color', defaultColor);
+            document.documentElement.style.setProperty('--theme-hover', darkenColor(defaultColor, 0.1));
+            updateButtonTextColor(defaultColor);
+        }
+
+        themeCheckbox.addEventListener('change', () => {
+            document.body.classList.toggle('light');
+            updateDefaultColor();
+        });
+
+        colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                colorOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                const color = option.dataset.color;
+                document.documentElement.style.setProperty('--theme-color', color);
+                document.documentElement.style.setProperty('--theme-hover', darkenColor(color, 0.1));
+                updateButtonTextColor(color);
+            });
+        });
+
+        function darkenColor(color, amount) {
+            const num = parseInt(color.slice(1), 16);
+            const r = Math.max(0, Math.floor((num >> 16) * (1 - amount)));
+            const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - amount)));
+            const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - amount)));
+            return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+        }
+
+        window.addEventListener('load', requestNotificationPermission);
+
+        updateDisplay();
+        updateDefaultColor();
+    </script>
+</body>
+</html>
